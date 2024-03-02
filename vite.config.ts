@@ -10,21 +10,17 @@ export default defineConfig({
   ],
   server: {
     host: true,
-    port: 443,
-    proxy: {
-      "^/api/?.*": {
-        target: "http://" + "localhost" + ":" + 4443,
-        changeOrigin: true,
-        autoRewrite: true,
-        // ws: true,
-        xfwd: true,
-        followRedirects: true,
-        secure: false,
-      },
-      "/openvidu": {
-        target: "ws://" + "localhost" + ":" + 4443,
-        ws: true,
-      },
-    },
+    port: 5000,
+    // proxy: {
+    //   "^/openvidu/api/?.*": {
+    //     target: "https://" + "volumetric" + ":" + 443,
+    //     secure: false,
+    //   },
+    //   "/openvidu": {
+    //     target: "wss://" + "volumetric" + ":" + 443,
+    //     ws: true,
+    //     secure: false,
+    //   },
+    // },
   },
 });

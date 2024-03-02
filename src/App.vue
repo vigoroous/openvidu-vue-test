@@ -3,12 +3,12 @@ import axios from "axios";
 import { OpenVidu, Session, StreamManager } from "openvidu-browser";
 import { ref } from "vue";
 import UserVideo from "./components/UserVideo.vue";
-axios.defaults.headers.post["Content-Type"] = "application/json";
+axios.defaults.headers.common["Content-Type"] = "application/json";
 axios.defaults.headers.common.Authorization =
   "Basic " + btoa("OPENVIDUAPP:MY_SECRET");
 // const APPLICATION_SERVER_URL = "http://localhost:4443/";
 // const APPLICATION_SERVER_URL = "http://localhost:5000/";
-const APPLICATION_SERVER_URL = "/";
+const APPLICATION_SERVER_URL = "https://volumetric.ru/";
 
 const OV = ref<OpenVidu>();
 const session = ref<Session>();
@@ -142,23 +142,32 @@ const getToken = async (mySessionId: string) => {
 };
 
 const createSession = async (sessionId: string) => {
-  const response = await axios.post<Session>(
-    APPLICATION_SERVER_URL + "api/sessions",
-    { customSessionId: sessionId },
-    // {},
-    {
-      headers: { "Content-Type": "application/json" },
-    }
-  );
+  try {
+    const response = await axios.post<Session>(
+      APPLICATION_SERVER_URL + "openvidu/api/sessions",
+      { customSessionId: sessionId }
+    );
 
-  console.log(response.data);
+    console.log(response.data);
 
-  return response.data; // The sessionId
+    return response.data; // The sessionId
+  } catch (e) {
+    const response = await axios.get<Session>(
+      `${APPLICATION_SERVER_URL}openvidu/api/sessions/${sessionId}`
+    );
+
+    console.log(response.data);
+
+    return response.data; // The sessionId
+  }
 };
 
 const createToken = async (sessionId: string) => {
   const response = await axios.post(
-    APPLICATION_SERVER_URL + "api/sessions/" + sessionId + "/connection",
+    APPLICATION_SERVER_URL +
+      "openvidu/api/sessions/" +
+      sessionId +
+      "/connection",
     {},
     {
       headers: { "Content-Type": "application/json" },
@@ -167,27 +176,8 @@ const createToken = async (sessionId: string) => {
 
   console.log(response.data);
 
-  const newToken = (response.data.token as string)
-  // .replace('ws://localhost:4443', 'ws://localhost:5000')
-
-  return newToken; // The token
+  return response.data.token as string; // The token
 };
-
-// const createToken = async (sessionId: string) => {
-//   const response = await axios.post(
-//     APPLICATION_SERVER_URL + "api/tokens",
-//     {
-//       session: sessionId,
-//       role: "PUBLISHER",
-//     },
-//     {
-//       headers: { "Content-Type": "application/json" },
-//     }
-//   );
-
-//   console.log(response.data)
-//   return response.data.token; // The token
-// };
 </script>
 
 <template>
