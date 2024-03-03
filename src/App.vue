@@ -8,7 +8,9 @@ axios.defaults.headers.common.Authorization =
   "Basic " + btoa("OPENVIDUAPP:MY_SECRET");
 // const APPLICATION_SERVER_URL = "http://localhost:4443/";
 // const APPLICATION_SERVER_URL = "http://localhost:5000/";
-const APPLICATION_SERVER_URL = "https://volumetric.ru/";
+// const APPLICATION_SERVER_URL = "https://volumetric.ru/";
+const APPLICATION_SERVER_URL = "/";
+
 
 const OV = ref<OpenVidu>();
 const session = ref<Session>();
