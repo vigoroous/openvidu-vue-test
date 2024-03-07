@@ -1,0 +1,16 @@
+export const ovTheme = {
+    primaryColor: '#303030',
+    secondaryColor: '#3e3f3f',
+    tertiaryColor: '#598eff',
+    warnColor: '#EB5144',
+    accentColor: '#ffae35',
+    lightColor: '#e6e6e6',
+    logoBackgroundColor: '#3a3d3d',
+    textColor: '#ffffff',
+    panelTextColor: '#1d1d1d',
+    panelBackground: '#ffffff',
+    buttonsRadius: '50%',
+    leaveButtonRadius: '10px',
+    videoRadius: '5px',
+    panelRadius: '5px',
+} as const;

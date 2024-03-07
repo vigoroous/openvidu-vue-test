@@ -90,7 +90,7 @@ onMounted(() => {
                 >
                     <XMarkIcon
                         class="close-icon"
-                        :color="colors.secondary"
+                        :color="colors.default900"
                     />
                 </NButton>
             </div>
