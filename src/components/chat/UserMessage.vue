@@ -8,15 +8,15 @@ const props = defineProps<{
     message: ChatMessage;
 }>();
 
-const { user } = storeToRefs(userStore);
+const { localUser } = storeToRefs(userStore);
 </script>
 
 <template>
     <div
         class="user-message"
         :class="{
-            left: props.message.connectionId !== user.connectionId,
-            right: props.message.connectionId === user.connectionId,
+            left: props.message.connectionId !== localUser.connectionId,
+            right: props.message.connectionId === localUser.connectionId,
         }"
     >
         <UserAvatar
@@ -46,8 +46,8 @@ const { user } = storeToRefs(userStore);
     .user-avatar {
         position: absolute;
         border-radius: 45px;
-        width: 60px;
-        height: 60px;
+        width: 40px;
+        height: 40px;
         top: 15px;
     }
 
@@ -103,8 +103,8 @@ const { user } = storeToRefs(userStore);
         }
 
         .user-avatar {
-            left: -5px;
-            border: 1px solid #f0f0f094;
+            // left: -5px;
+            // border: 1px solid #f0f0f094;
         }
 
         .msg-detail .msg-content {

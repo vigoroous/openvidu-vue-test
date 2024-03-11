@@ -45,5 +45,9 @@ onBeforeMount(() => {
     border: 2px solid #ffffff;
     color: #000;
     text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
 }
 </style>

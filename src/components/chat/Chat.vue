@@ -1,21 +1,22 @@
 <script setup lang="ts">
 import { userStore, themeStore } from '@src/store';
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, ref } from 'vue';
-import { NButton, NInput, NTooltip } from 'naive-ui';
-import { XMarkIcon } from '@heroicons/vue/16/solid';
+import { computed, onMounted, onUpdated, ref } from 'vue';
+import { NButton, NInput, NModal, NScrollbar, NTooltip } from 'naive-ui';
+import { XMarkIcon } from '@heroicons/vue/20/solid';
 import { PaperAirplaneIcon } from '@heroicons/vue/24/solid';
 import { ChatMessage } from '@src/types';
 import UserMessage from './UserMessage.vue';
+import { ovTheme } from '@src/consts/ov.consts';
 
 const props = defineProps<{
     show?: boolean;
 }>();
 
-const { user } = storeToRefs(userStore);
+const { localUser } = storeToRefs(userStore);
 const { colors } = storeToRefs(themeStore);
 
-const sessionId = computed(() => user.value.streamManager?.stream.session.sessionId);
+const sessionId = computed(() => localUser.value.streamManager?.stream.session.sessionId);
 
 const messageList = ref<ChatMessage[]>([]);
 const message = ref('');
@@ -23,6 +24,8 @@ const emits = defineEmits<{
     (e: 'close'): void;
     (e: 'message-received'): void;
 }>();
+
+const isInit = ref(false);
 
 const close = () => {
     emits('close');
@@ -40,14 +43,15 @@ const handlePressKey = (e: KeyboardEvent) => {
 const sendMessage = async () => {
     if (message.value) {
         const newMessage = message.value.replace(/ +(?= )/g, '');
-        if (newMessage && user.value.streamManager) {
+        if (newMessage && localUser.value.streamManager) {
             const data = {
                 message: newMessage,
-                nickname: user.value.nickname,
-                streamId: user.value.streamManager.stream.streamId,
+                nickname: localUser.value.nickname,
+                streamId: localUser.value.streamManager.stream.streamId,
+                createdAt: Date.now(),
             };
 
-            await user.value.streamManager.stream.session.signal({
+            await localUser.value.streamManager.stream.session.signal({
                 data: JSON.stringify(data),
                 type: 'chat',
             });
@@ -57,36 +61,47 @@ const sendMessage = async () => {
     message.value = '';
 };
 
-onMounted(() => {
-    if (!user.value.streamManager) return;
-    user.value.streamManager.stream.session.on('signal:chat', (event) => {
-        if (!event.data || !event.from) return;
-        const data = JSON.parse(event.data) as ChatMessage;
+onUpdated(() => {
+    if (!isInit.value) {
+        if (!localUser.value.streamManager) return;
+        localUser.value.streamManager.stream.session.on('signal:chat', (event) => {
+            if (!event.data || !event.from) return;
+            const data = JSON.parse(event.data) as ChatMessage;
 
-        messageList.value.push({
-            connectionId: event.from.connectionId,
-            nickname: data.nickname,
-            message: data.message,
-            createdAt: data.createdAt,
-            streamId: data.streamId,
+            messageList.value.push({
+                connectionId: event.from.connectionId,
+                nickname: data.nickname,
+                message: data.message,
+                createdAt: data.createdAt,
+                streamId: data.streamId,
+            });
+
+            messageReceived();
         });
 
-        messageReceived();
-    });
+        isInit.value = true;
+    }
 });
 </script>
 
 <template>
-    <div class="chat-container">
-        <div
-            class="chat-component"
-            v-show="props.show"
-        >
+    <NModal
+        :show="props.show"
+        class="chat-container"
+    >
+        <div class="chat-component">
             <div class="chat-toolbar">
-                <span v-if="sessionId">{{ sessionId }} - CHAT</span>
+                <span
+                    class="title"
+                    v-if="sessionId"
+                >
+                    {{ sessionId }} - CHAT
+                </span>
                 <NButton
                     class="close-button"
                     @click="close"
+                    text
+                    color="#ffffff"
                 >
                     <XMarkIcon
                         class="close-icon"
@@ -95,11 +110,13 @@ onMounted(() => {
                 </NButton>
             </div>
             <div class="message-list">
-                <UserMessage
-                    v-for="(message, idx) in messageList"
-                    :key="idx"
-                    :message="message"
-                />
+                <NScrollbar style="height: 100%; flex: 1">
+                    <UserMessage
+                        v-for="(message, idx) in messageList"
+                        :key="idx"
+                        :message="message"
+                    />
+                </NScrollbar>
             </div>
 
             <div class="message-input">
@@ -108,106 +125,101 @@ onMounted(() => {
                     placeholder="Send a messge"
                     class="chat-input"
                     @keyup="handlePressKey"
+                    :bordered="false"
+                    type="textarea"
+                    :autosize="{ minRows: 1, maxRows: 8 }"
                 />
-                <NTooltip title="Send message">
-                    <NButton
-                        class="send-button"
-                        @click="sendMessage"
-                    >
-                        <PaperAirplaneIcon />
-                    </NButton>
-                </NTooltip>
+                <div class="actions">
+                    <div class="button-wrapper">
+                        <NTooltip trigger="hover">
+                            <template #trigger>
+                                <NButton
+                                    class="send-button"
+                                    @click="sendMessage"
+                                    :bordered="false"
+                                >
+                                    <PaperAirplaneIcon />
+                                </NButton>
+                            </template>
+                            Send Message
+                        </NTooltip>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </NModal>
 </template>
 
 <style scoped lang="scss">
-.chat-container {
-    position: absolute;
-    z-index: 0;
-    width: 100%;
-    height: 100%;
+.chat-component {
+    height: calc(100vh - 80px);
+    width: calc(100vw - 80px);
+    max-width: 600px;
+    max-height: 800px;
+    background-color: #b8b8b8;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 
-    .chat-component {
-        background-color: #b8b8b8;
-        position: absolute;
-        z-index: 99999;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        margin: auto;
-        height: calc(100% - 30px);
-        width: calc(100% - 30px);
-        border-radius: 20px;
+    .chat-toolbar {
+        height: 40px;
+        background-color: #3d3d3d;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
 
-        .chat-toolbar {
-            height: 30px;
-            background-color: #3d3d3d;
-            box-sizing: border-box;
+        .title {
             font-weight: bold;
             font-size: 14px;
             text-align: center;
-            padding-top: 4px;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
             color: #ffffff;
-
-            .close-button {
-                position: absolute;
-                right: 0;
-                top: -8px;
+        }
+        .close-button {
+            // padding: 0;
+            svg {
+                width: 24px;
+                height: 24px;
             }
         }
+    }
 
-        .message-list {
-            padding: 0 15px;
-            height: calc(100% - 80px);
-            overflow: auto;
+    .message-list {
+        padding: 0 15px;
+        // height: calc(100% - 80px);
+        // overflow: auto;
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .message-input {
+        display: flex;
+        background-color: #ffffff;
+        // height: 40px;
+        align-items: center;
+
+        .chat-input {
+            height: 100%;
+            padding: 8px 0;
         }
 
-        .message-input {
-            position: absolute;
-            bottom: 0px;
-            width: 100%;
-            background-color: #ffffff;
-            text-align: center;
-            padding: 10px 0px;
-            height: 30px;
-            border-bottom-left-radius: 6px;
-            border-bottom-right-radius: 6px;
-            .chat-input {
-                width: 90%;
-                height: 100%;
-                border: none;
-                outline: none;
-                font-size: 14px;
-                margin-left: -6%;
-                color: #000000;
+        .actions {
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            .button-wrapper {
+                padding: 8px;
+
+                .send-button {
+                    svg {
+                        color: #598eff;
+                        width: 24px;
+                        height: 24px;
+                    }
+                }
             }
-
-            .send-button {
-                background-color: #81e9b0;
-                position: absolute;
-                right: 10px;
-                top: 0;
-                bottom: 0;
-                margin: auto;
-                border: 1px solid #7ae2a9;
-                box-shadow: none !important;
-                margin-left: 3px !important;
-                margin-bottom: 2px !important;
-            }
-        }
-
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background-color: #6b6b6b;
         }
     }
 }

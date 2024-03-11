@@ -2,9 +2,9 @@ import { StreamManager } from 'openvidu-browser';
 
 export type User = {
     connectionId: string;
-    audioActive: boolean;
-    videoActive: boolean;
-    screenShareActive: boolean;
+    isAudioActive: boolean;
+    isVideoActive: boolean;
+    isScreenShareActive: boolean;
     nickname: string;
     streamManager: StreamManager | null;
     type: 'remote' | 'local';

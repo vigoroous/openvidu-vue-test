@@ -5,11 +5,12 @@ import {
     ArrowsPointingOutIcon,
     ChatBubbleOvalLeftIcon,
     MicrophoneIcon,
+    PhoneXMarkIcon,
     TvIcon,
     VideoCameraIcon,
     VideoCameraSlashIcon,
     ViewfinderCircleIcon,
-} from '@heroicons/vue/24/solid';
+} from '@heroicons/vue/20/solid';
 import openviduLogo from '@src/assets/images/openvidu_logo_short.png';
 import { userStore } from '@src/store';
 import { NButton } from 'naive-ui';
@@ -25,7 +26,7 @@ const fullscreen = ref(false);
 const recording = ref(false);
 const showChat = ref(false);
 
-const { user } = storeToRefs(userStore);
+const { localUser } = storeToRefs(userStore);
 
 const emits = defineEmits<{
     (e: 'mic-status-changed'): void;
@@ -36,8 +37,8 @@ const emits = defineEmits<{
     (e: 'switch-camera'): void;
     (e: 'leave-session'): void;
     (e: 'toggle-chat'): void;
-    (e: 'start-recording'): void;
-    (e: 'stop-recording'): void;
+    // (e: 'start-recording'): void;
+    // (e: 'stop-recording'): void;
 }>();
 
 const toggleFullscreen = () => {
@@ -46,21 +47,21 @@ const toggleFullscreen = () => {
 };
 
 const toggleScreenShare = () => {
-    if (user.value.screenShareActive) {
+    if (localUser.value.isScreenShareActive) {
         emits('stop-screen-share');
     } else {
         emits('start-screen-share');
     }
 };
 
-const toggleRecording = () => {
-    if (recording.value) {
-        emits('stop-recording');
-    } else {
-        emits('start-recording');
-    }
-    recording.value = !recording.value;
-};
+// const toggleRecording = () => {
+//     if (recording.value) {
+//         emits('stop-recording');
+//     } else {
+//         emits('start-recording');
+//     }
+//     recording.value = !recording.value;
+// };
 
 const toggleChat = () => {
     emits('toggle-chat');
@@ -82,7 +83,7 @@ const toggleChat = () => {
         <div class="media-buttons">
             <NButton
                 class="button"
-                :color="user.audioActive ? ovTheme.logoBackgroundColor : ovTheme.warnColor"
+                :color="localUser.isAudioActive ? ovTheme.logoBackgroundColor : ovTheme.warnColor"
                 @click="emits('mic-status-changed')"
             >
                 <MicrophoneIcon />
@@ -90,16 +91,16 @@ const toggleChat = () => {
 
             <NButton
                 class="button"
-                :color="user.videoActive ? ovTheme.logoBackgroundColor : ovTheme.warnColor"
+                :color="localUser.isVideoActive ? ovTheme.logoBackgroundColor : ovTheme.warnColor"
                 @click="emits('cam-status-changed')"
             >
-                <VideoCameraIcon v-if="user.videoActive" />
+                <VideoCameraIcon v-if="localUser.isVideoActive" />
                 <VideoCameraSlashIcon v-else />
             </NButton>
 
             <NButton
                 class="button"
-                :color="user.screenShareActive ? ovTheme.tertiaryColor : ovTheme.logoBackgroundColor"
+                :color="localUser.isScreenShareActive ? ovTheme.tertiaryColor : ovTheme.logoBackgroundColor"
                 @click="toggleScreenShare"
             >
                 <TvIcon />
@@ -122,20 +123,20 @@ const toggleChat = () => {
                 <ArrowsPointingOutIcon v-else />
             </NButton>
 
-            <NButton
+            <!-- <NButton
                 class="button"
                 :color="recording ? ovTheme.tertiaryColor : ovTheme.logoBackgroundColor"
                 @click="toggleRecording"
             >
                 <ViewfinderCircleIcon />
-            </NButton>
+            </NButton> -->
 
             <NButton
                 class="leave-session-button"
-                :color="recording ? ovTheme.tertiaryColor : ovTheme.logoBackgroundColor"
+                :color="ovTheme.warnColor"
                 @click="emits('leave-session')"
             >
-                <ViewfinderCircleIcon />
+                <PhoneXMarkIcon />
             </NButton>
         </div>
         <div class="menu-buttons">
@@ -156,11 +157,21 @@ const toggleChat = () => {
     align-items: center;
     justify-content: space-between;
     background-color: #303030;
+    height: 70px;
+    padding: 0 16px;
+
+    @media (max-width: 400px) {
+        padding: 0 8px;
+    }
 
     .info {
         display: flex;
         align-items: center;
         gap: 16px;
+
+        @media (max-width: 400px) {
+            display: none;
+        }
 
         .logo {
             max-width: 35px;
@@ -171,28 +182,41 @@ const toggleChat = () => {
         }
     }
 
+    .button {
+        border-radius: v-bind('ovTheme.buttonsRadius');
+        width: 40px;
+        height: 40px;
+        padding: 0;
+
+        svg {
+            height: 20px;
+            width: 20px;
+        }
+    }
+
+    .leave-session-button {
+        border-radius: v-bind('ovTheme.leaveButtonRadius');
+        width: 60px;
+        height: 40px;
+        padding: 0;
+
+        svg {
+            height: 20px;
+            width: 20px;
+        }
+    }
+
     .media-buttons {
         display: flex;
         align-items: center;
         gap: 12px;
 
-        .button {
-            border-radius: v-bind('ovTheme.buttonsRadius');
-            width: 40px;
-            height: 40px;
-        }
-
-        .leave-session-button {
-            border-radius: v-bind('ovTheme.leaveButtonRadius');
+        @media (max-width: 400px) {
+            gap: 4px;
         }
     }
 
     .menu-buttons {
-        .button {
-            border-radius: v-bind('ovTheme.buttonsRadius');
-            width: 40px;
-            height: 40px;
-        }
     }
 }
 </style>

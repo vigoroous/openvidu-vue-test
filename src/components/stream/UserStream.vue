@@ -32,13 +32,13 @@ const toggleSound = () => {
             <div class="status-icons">
                 <div
                     class="cam-icon"
-                    v-if="!props.user.videoActive"
+                    v-if="!props.user.isVideoActive"
                 >
                     <VideoCameraSlashIcon />
                 </div>
                 <div
                     class="mic-icon"
-                    v-if="!props.user.audioActive"
+                    v-if="!props.user.isAudioActive"
                 >
                     <MicrophoneIcon />
                 </div>
@@ -50,8 +50,8 @@ const toggleSound = () => {
                     color="#000000c4"
                     @click="toggleSound"
                 >
-                    <SpeakerWaveIcon v-if="mutedSound" />
-                    <SpeakerXMarkIcon v-else />
+                    <SpeakerXMarkIcon v-if="mutedSound" />
+                    <SpeakerWaveIcon v-else />
                 </NButton>
             </div>
         </div>
@@ -60,10 +60,11 @@ const toggleSound = () => {
 
 <style scoped lang="scss">
 .user-stream {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    overflow: hidden;
+    // width: 100%;
+    // height: 100%;
+    // position: absolute;
+    // overflow: hidden;
+    position: relative;
 
     .nickname {
         background: rgba(58, 64, 74, 0.651);
@@ -111,6 +112,12 @@ const toggleSound = () => {
             right: 1px;
             z-index: 1000;
             color: #ffffff;
+            padding: 0;
+
+            svg {
+                width: 24px;
+                height: 24px;
+            }
         }
     }
 }
